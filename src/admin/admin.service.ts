@@ -83,42 +83,6 @@ export class AdminService {
     });
   }
 
-// async updateLecturerDesignation(
-//   lecturerId: string,
-//   body: UpdateLecturerDesignationDto,
-// ): Promise<void> {
-//   // 1. Validation
-//   if (body.role === LecturerRole.PART_ADVISER && !body.part) {
-//     throw new BadRequestException('part (Level) is required for PART_ADVISER');
-//   }
-
-//   // 2. Data Fetching
-//   const lecturer = await this.prisma.lecturer.findUnique({
-//     where: { id: lecturerId },
-//     select: { id: true, departmentId: true },
-//   });
-
-//   if (!lecturer) {
-//     throw new NotFoundException(`Lecturer ${lecturerId} not found`);
-//   }
-
-//   // 3. Structured Data for Upsert
-//   const designationConstraint = {
-//     entity: lecturer.departmentId,
-//     role: body.role,
-//     lecturerId: lecturer.id,
-//     part: body.part ?? null, // Ensure 'null' is passed if no part exists
-//   };
-
-//   await this.prisma.lecturerDesignation.upsert({
-//     where: {
-//       designation: designationConstraint,
-//     },
-//     update: {
-//     },
-//     create: designationConstraint,
-//   });
-// }
 async updateLecturerDesignation(
   lecturerId: string,
   body: UpdateLecturerDesignationDto,
@@ -139,6 +103,19 @@ async updateLecturerDesignation(
     throw new NotFoundException(`Lecturer with ID ${lecturerId} not found`);
   }
 
+  
+  const assignedDept = await this.prisma.lecturerDesignation.findFirst({
+    where: {
+      entity: lecturer.departmentId,
+      role: body.role,
+      part: body.part ?? null,
+    },
+  });
+  if (assignedDept) {
+    throw new BadRequestException(
+      `The role ${body.role} is already assigned to another lecturer in this department for the specified part.`,
+    );
+  }
   const updatedLecturer = await this.prisma.lecturerDesignation.upsert({
     where: {
       designation: {

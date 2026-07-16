@@ -5,12 +5,12 @@ import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validat
 export class AddAdminBody {
   @ApiProperty()
   @IsEmail()
-  email: string;
+  email!: string;
 
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  name: string;
+  name!: string;
 }
 
 export class UpdateAdminBody {
@@ -33,7 +33,7 @@ export class UpdateLecturerDesignationDto {
     example: LecturerRole.HOD,
   })
   @IsEnum(LecturerRole)
-  role: LecturerRole;
+  role!: LecturerRole;
  
   @ApiPropertyOptional({
     description: 'Student level — required only when role is PART_ADVISER',
@@ -52,7 +52,7 @@ export class ActivateFixtureLecturersBody {
     example: ['dean.e2e123456@example.com', 'coord.e2e123456@example.com'],
   })
   @IsEmail({}, { each: true })
-  emails: string[];
+  emails!: string[];
 
   @ApiProperty({
     description: 'Test password to assign to all listed lecturers',
@@ -60,6 +60,6 @@ export class ActivateFixtureLecturersBody {
   })
   @IsString()
   @IsNotEmpty()
-  password: string;
+  password!: string;
 }
  

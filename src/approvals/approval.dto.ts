@@ -23,7 +23,7 @@ export class RespondToApprovalRequestDto {
   })
   @IsString()
   @IsNotEmpty()
-  lecturerDesignationId: string;
+  lecturerDesignationId!: string;
 
   @ApiProperty({
     description: 'The approval decision',
@@ -31,7 +31,7 @@ export class RespondToApprovalRequestDto {
     example: 'APPROVED',
   })
   @IsEnum(['APPROVED', 'REJECTED'])
-  approvalStatus: Extract<ApprovalStatus, 'APPROVED' | 'REJECTED'>;
+  approvalStatus!: Extract<ApprovalStatus, 'APPROVED' | 'REJECTED'>;
 
   @ApiPropertyOptional({
     description: 'Optional feedback — required when rejecting',
@@ -53,7 +53,7 @@ export class CreatePipelineStepDto {
     example: LecturerRole.HOD,
   })
   @IsEnum(LecturerRole)
-  role: LecturerRole;
+  role!: LecturerRole;
 
   @ApiProperty({
     description: 'Order of approval — lower number goes first',
@@ -62,7 +62,7 @@ export class CreatePipelineStepDto {
   })
   @IsInt()
   @Min(1)
-  priority: number;
+  priority!: number;
 
   @ApiProperty({
     description: 'Whether this step applies to the offering or taking department',
@@ -70,7 +70,7 @@ export class CreatePipelineStepDto {
     example: PipelineScope.OFFERING_DEPT,
   })
   @IsEnum(PipelineScope)
-  scope: PipelineScope;
+  scope!: PipelineScope;
 
   @ApiPropertyOptional({
     description: 'Student level — only required when role is PART_ADVISER',
@@ -93,7 +93,7 @@ export class CreatePipelineTemplateDto {
   })
   @IsString()
   @IsNotEmpty()
-  name: string;
+  name!: string;
 
   @ApiPropertyOptional({
     description: 'Optional description of the template',
@@ -109,7 +109,7 @@ export class CreatePipelineTemplateDto {
   })
   @IsString()
   @IsNotEmpty()
-  createdByDeanId: string;
+  createdByDeanId!: string;
 
   @ApiProperty({
     description: 'Ordered list of approval steps',
@@ -118,7 +118,7 @@ export class CreatePipelineTemplateDto {
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => CreatePipelineStepDto)
-  steps: CreatePipelineStepDto[];
+  steps!: CreatePipelineStepDto[];
 }
 
 // ============================================================
@@ -132,7 +132,7 @@ export class ActivateTemplateDto {
   })
   @IsString()
   @IsNotEmpty()
-  templateId: string;
+  templateId!: string;
 
   @ApiProperty({
     description: 'Lecturer ID of the Dean activating this template',
@@ -140,7 +140,7 @@ export class ActivateTemplateDto {
   })
   @IsString()
   @IsNotEmpty()
-  activatedByDeanId: string;
+  activatedByDeanId!: string;
 }
 
 // ============================================================
@@ -154,5 +154,5 @@ export class DeactivateTemplateDto {
   })
   @IsString()
   @IsNotEmpty()
-  deanId: string;
+  deanId!: string;
 }

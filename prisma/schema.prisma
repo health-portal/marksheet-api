@@ -100,6 +100,21 @@ enum DeptResultStatus {
   NOT_UPLOADED
 }
 
+enum GradingStrategy {
+  DEFAULT      // Standard CGPA/GPA calculations
+  NURSING
+  MEDICINE
+  DENTISTRY      
+}
+
+enum AcademicStatus {
+  PASS
+  PASS_WITH_CREDIT
+  DISTINCTION
+  REPEAT
+  WITHDRAWN
+}
+
 model User {
     id        String    @id @default(uuid())
     createdAt DateTime  @default(now())
@@ -213,6 +228,7 @@ model Student {
     department   Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
 
     enrollments Enrollment[]
+    sessionSummaries StudentSessionSummary[]
 
     @@index([departmentId])
     @@index([level])
@@ -224,15 +240,36 @@ model Student {
     @@map("students")
 }
 
+
+model StudentSessionSummary {
+  id           String         @id @default(uuid())
+  studentId    String
+  sessionId    String
+  level        Level          // Level during this session (e.g. LVL_200)
+  gpa          Float          // Calculated session weighted average
+  failedCount  Int            // Number of failed courses in this session
+  status       AcademicStatus // Evaluation result (e.g., RETAKE, RESIT, etc.)
+  
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  student      Student        @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  session      Session        @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, sessionId])
+  @@index([studentId])
+  @@map("student_session_summaries")
+}
 model Faculty {
-    id        String    @id @default(uuid())
-    createdAt DateTime  @default(now())
-    updatedAt DateTime  @updatedAt
-    deletedAt DateTime?
+    id              String    @id @default(uuid())
+    createdAt       DateTime  @default(now())
+    updatedAt       DateTime  @updatedAt
+    deletedAt       DateTime?
 
-    name String @unique
+    name            String             @unique
+    strategy        GradingStrategy @default(DEFAULT) // <--- Add this field
 
-    departments Department[]
+    departments                 Department[]
     pipelineTemplates           PipelineTemplate[]
     pipelineTemplateActivations PipelineTemplateActivation[]
 
@@ -242,9 +279,9 @@ model Faculty {
 
 model Department {
     id        String    @id @default(uuid())
-    createdAt DateTime  @default(now())
-    updatedAt DateTime  @updatedAt
-    deletedAt DateTime?
+    createdAt       DateTime  @default(now())
+    updatedAt       DateTime  @updatedAt
+    deletedAt       DateTime?
 
     name      String @unique
     shortName String @unique
@@ -275,6 +312,7 @@ model Session {
     endDate      DateTime
 
     courseSessions CourseSession[]
+    sessionSummaries StudentSessionSummary[]
 
     @@index([startDate])
     @@index([endDate])

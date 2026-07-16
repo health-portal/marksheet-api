@@ -13,22 +13,22 @@ import { IsSequentialAcademicYear } from 'src/college/college.dto';
 export class CreateStudentBody {
   @ApiProperty()
   @IsEmail()
-  email: string;
+  email!: string;
 
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  matricNumber: string;
+  matricNumber!: string;
 
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  firstName: string;
+  firstName!: string;
 
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  lastName: string;
+  lastName!: string;
 
   @ApiProperty({ required: false })
   @IsString()
@@ -38,30 +38,30 @@ export class CreateStudentBody {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  department: string;
+  department!: string;
 
   @ApiProperty()
   @Transform(({ value }) =>
     typeof value === 'string' ? value.toUpperCase().trim() : value,
   )
   @IsEnum(Level)
-  level: Level;
+  level!: Level;
 
   @ApiProperty()
   @IsSequentialAcademicYear()
-  admissionYear: string;
+  admissionYear!: string;
 
   @ApiProperty({ enum: Gender })
   @Transform(({ value }) =>
     typeof value === 'string' ? value.toUpperCase().trim() : value,
   )
   @IsEnum(Gender)
-  gender: Gender;
+  gender!: Gender;
 
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  degree: string;
+  degree!: string;
 }
 
 export class UpdateStudentBody {

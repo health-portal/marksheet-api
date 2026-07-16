@@ -7,17 +7,17 @@ import { IsSequentialAcademicYear } from 'src/college/college.dto';
 export class CreateSessionBody {
   @ApiProperty()
   @IsSequentialAcademicYear()
-  academicYear: string;
+  academicYear!: string;
 
   @ApiProperty({ type: 'string', format: 'date-time' })
   @IsDate()
   @Type(() => Date)
-  startDate: Date;
+  startDate!: Date;
 
   @ApiProperty({ type: 'string', format: 'date-time' })
   @IsDate()
   @Type(() => Date)
-  endDate: Date;
+  endDate!: Date;
 }
 
 export class UpdateSessionBody {
@@ -39,36 +39,36 @@ export class UpdateSessionBody {
 export class AssignCourseToSessionBody {
   @ApiProperty()
   @IsUUID('4')
-  courseId: string;
+  courseId!: string;
 
   @ApiProperty()
   @IsUUID('4')
-  gradingSystemId: string;
+  gradingSystemId!: string;
 }
 
 export class UpdateCourseInSessionBody {
   @ApiProperty()
   @IsUUID('4')
-  gradingSystemId: string;
+  gradingSystemId!: string;
 }
 
 export class AssignLecturersBody {
   @ApiProperty()
   @IsArray()
   @IsUUID('4', { each: true })
-  lecturerIds: string[];
+  lecturerIds!: string[];
 
   @ApiProperty()
   @IsUUID()
-  coordinatorId: string;
+  coordinatorId!: string;
 }
 
 export class AssignDeptAndLevelBody {
   @ApiProperty()
   @IsUUID('4')
-  departmentId: string;
+  departmentId!: string;
 
   @ApiProperty({ enum: Level })
   @IsEnum(Level)
-  level: Level;
+  level!: Level;
 }

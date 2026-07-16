@@ -200,13 +200,14 @@ export class FilesService {
 
     this.logger.log(`Processing complete. ${summary.success}/${summary.total} successful.`);
     } catch (error) {
-      this.logger.error(`Failed to parse file ${fileId}: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Failed to parse file ${fileId}: ${errorMessage}`);
       await this.prisma.file.update({
         where: { id: file.id },
         data: {
           metadata: JSON.stringify({
             ...metadata,
-            error: error.message as string,
+            error: errorMessage,
           }),
         },
       });
@@ -239,7 +240,8 @@ export class FilesService {
         courses.push({ ...row, isCreated: true });
       } catch (error) {
         failedCount++;
-        console.log("failed!")
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        console.log(`failed: ${errorMessage}`)
         courses.push({ ...row, isCreated: false });
       }
     }
@@ -296,7 +298,8 @@ export class FilesService {
         lecturers.push({ ...row, isCreated: true });
       } catch (error) {
         failedCount++;
-        this.logger.error(`Failed to create lecturer ${row.email}: ${error.message}`);
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        this.logger.error(`Failed to create lecturer ${row.email}: ${errorMessage}`);
         lecturers.push({ ...row, isCreated: false });
       }
     }
@@ -715,7 +718,8 @@ export class FilesService {
             studentsUploadedFor.push(row.matricNumber);
           } catch (error) {
             failedCount++;
-            this.logger.log(`Error occurred ${error.message}`);
+          const errorMessage = error instanceof Error ? error.message : String(error);
+            this.logger.log(`Error occurred ${errorMessage}`);
             studentsNotFound.push(row.matricNumber);
           }
         }
@@ -771,7 +775,6 @@ export class FilesService {
     ]);
     }
 
-
     private async downloadFile(url: string): Promise<Buffer> {
       const response = await axios.get(url, { responseType: 'arraybuffer' });
       return Buffer.from(response.data);
@@ -780,14 +783,12 @@ export class FilesService {
     
   async validateResultHeaders(file: Express.Multer.File, courseSessionId: string): Promise<void> {
     const csvString = file.buffer.toString();
-    
-    // Get the required variables from the database (e.g., ['CA', 'Exam'])
     const courseSession = await this.prisma.courseSession.findUniqueOrThrow({
       where: { id: courseSessionId },
       include: { gradingSystem: { include: { fields: true } } }
     });
 
-    const requiredVariables = courseSession.gradingSystem.fields.map(f => f.variable);
+    const configuredVariables = courseSession.gradingSystem.fields.map(f => f.variable);
     const headerMappings = await this.getHeaderMappings(FileCategory.RESULTS, courseSessionId);
     
     const result = Papa.parse(csvString, { preview: 1, header: false });
@@ -795,20 +796,20 @@ export class FilesService {
     
     const transformedHeaders = csvHeaders.map(h => headerMappings[h.trim()] || h.trim());
 
-    const missingFields = requiredVariables.filter(v => !transformedHeaders.includes(v));
-
-    if (missingFields.length > 0) {
-      throw new BadRequestException(
-        `Invalid CSV headers. Missing columns for: ${missingFields.join(', ')}. ` +
-        `Ensure your headers match the expected mapping.`
-      );
-    }
-    
-    // Also check for Matriculation Number
     if (!transformedHeaders.includes('matricNumber')) {
       throw new BadRequestException("CSV is missing 'Matriculation Number' column.");
     }
+
+    const presentFields = configuredVariables.filter(v => transformedHeaders.includes(v));
+
+    if (presentFields.length === 0) {
+      throw new BadRequestException(
+        `Invalid CSV. The file must contain at least one valid grading system variable column ` +
+        `(e.g., ${configuredVariables.join(', ')}).`
+      );
+    }
   }
+
 
   async validateFileHeaders(
     file: Express.Multer.File,

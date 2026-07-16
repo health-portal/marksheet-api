@@ -13,17 +13,17 @@ import {
 export class CreateLecturerBody {
   @ApiProperty()
   @IsEmail()
-  email: string;
+  email!: string;
 
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  firstName: string;
+  firstName!: string;
 
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  lastName: string;
+  lastName!: string;
 
   @ApiProperty({ required: false })
   @IsOptional()
@@ -35,7 +35,7 @@ export class CreateLecturerBody {
     typeof value === 'string' ? value.toUpperCase().trim() : value,
   )
   @IsEnum(Gender)
-  gender: Gender;
+  gender!: Gender;
 
   @ApiProperty({ required: false })
   @IsOptional()
@@ -45,12 +45,12 @@ export class CreateLecturerBody {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  department: string;
+  department!: string;
 
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  title: string;
+  title!: string;
 }
 
 export class UpdateLecturerBody {
@@ -90,7 +90,7 @@ export class UpdateLecturerBody {
 export class EditResultBody {
   @ApiProperty()
   @IsObject()
-  scores: Record<string, number>;
+  scores!: Record<string, number>;
 }
 
 export class GetLecturersQuery {
@@ -109,18 +109,18 @@ export class UploadResultRow {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  matricNumber: string;
+  matricNumber!: string;
 
   @ApiProperty()
   @IsObject()
-  scores: Record<string, number>;
+  scores!: Record<string, number>;
 }
 
 export class RegisterStudentBody {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  matricNumber: string;
+  matricNumber!: string;
 }
 
 export class UploadResultDto {
@@ -130,5 +130,5 @@ export class UploadResultDto {
     description: 'Whether this is an initial result or resit',
   })
   @IsEnum(ResultType)
-  resultType: ResultType;
+  resultType!: ResultType;
 }

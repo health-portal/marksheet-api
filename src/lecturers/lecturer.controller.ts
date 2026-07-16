@@ -204,7 +204,7 @@ export class LecturerController {
     @User() user: UserPayload,
     @Param('courseSesnDeptLevelId') courseSesnDeptLevelId: string,
     @UploadedFile() file: Express.Multer.File,
-    // @Body() body: UploadResultDto, 
+    @Body() body: UploadResultDto, 
   ) {
     const lecturerId = this.getLecturerId(user);
     // const lecturerId = "a49a1cee-6042-4c2d-b048-0520133292c3";
@@ -213,7 +213,7 @@ export class LecturerController {
       lecturerId,
       courseSesnDeptLevelId,
       file,
-      // body.resultType,
+      body.resultType,
     );
   }
 

@@ -1,5 +1,6 @@
 {
 	"compilerOptions": {
+    	"types": ["node", "multer"],
 		"module": "nodenext",
 		"moduleResolution": "nodenext",
 		"resolvePackageJsonExports": true,
@@ -23,3 +24,4 @@
 		"noFallthroughCasesInSwitch": false
 	}
 }
+

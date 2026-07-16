@@ -30,24 +30,24 @@ export interface FileMetadata {
 
 export class RowValidationError {
   @ApiProperty()
-  row: number;
+  row!: number;
 
   @ApiProperty({ type: [String] })
-  errorMessages: string[];
+  errorMessages!: string[];
 }
 
 export class ParseCsvData<T extends object> {
   @ApiProperty()
-  numberOfRows: number;
+  numberOfRows!: number;
 
   @ApiProperty({ type: [Object] })
-  validRows: T[];
+  validRows!: T[];
 
   @ApiProperty({ type: [RowValidationError] })
-  invalidRows: RowValidationError[];
+  invalidRows!: RowValidationError[];
 }
 
 export class ProvideAltHeaderMappingsBody {
   @ApiProperty({ type: [Object] })
-  altHeaderMappings: Record<string, string>;
+  altHeaderMappings!: Record<string, string>;
 }

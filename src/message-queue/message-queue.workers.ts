@@ -74,9 +74,10 @@ export class MessageQueueWorkersModule
           recipients: [toEmail],
         });
         console.log(`[EMAIL WORKER] Sent to ${toEmail}`);
-      } catch (err) {
-        console.error(`[EMAIL WORKER] Failed: ${err.message}`);
-        throw err;
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        console.error(`[EMAIL WORKER] Failed: ${errorMessage}`);
+        throw error;
       }
     },
     {
@@ -107,9 +108,10 @@ export class MessageQueueWorkersModule
         try {
           await this.filesService.parseFile(payload);
           console.log(`[FILE WORKER] Job ${job.id} completed`);
-        } catch (err) {
-          console.error(`[FILE WORKER] Job ${job.id} failed: ${err.message}`);
-          throw err;
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : String(error);
+          console.error(`[FILE WORKER] Job ${job.id} failed: ${errorMessage}`);
+          throw error;
         }
       },
       {
@@ -132,9 +134,10 @@ export class MessageQueueWorkersModule
         try {
           await this.filesService.processResultUpload(payload);
           console.log(`[RESULTS WORKER] Job ${job.id} completed`);
-        } catch (err) {
-          console.error(`[RESULTS WORKER] Job ${job.id} failed: ${err.message}`);
-          throw err;
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : String(error);
+          console.error(`[RESULTS WORKER] Job ${job.id} failed: ${errorMessage}`);
+          throw error;
         }
       },
       {

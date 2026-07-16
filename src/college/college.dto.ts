@@ -14,27 +14,27 @@ export class CreateFacultyBody {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  name: string;
+  name!: string;
 }
 
 export class CreateDepartmentBody {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  name: string;
+  name!: string;
 
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  shortName: string;
+  shortName!: string;
 
   @ApiProperty()
   @IsUUID()
-  facultyId: string;
+  facultyId!: string;
 
   @ApiProperty({ enum: Level })
   @IsEnum(Level)
-  maxLevel: Level;
+  maxLevel!: Level;
 }
 
 export function IsSequentialAcademicYear(

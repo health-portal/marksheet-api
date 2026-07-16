@@ -45,48 +45,48 @@ export interface TokenPayload {
 export class SetPasswordBody {
   @ApiProperty()
   @IsStrongPassword()
-  password: string;
+  password!: string;
 
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  tokenString: string;
+  tokenString!: string;
 }
 
 export class SigninUserBody {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  identifier: string;
+  identifier!: string;
 
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  password: string;
+  password!: string;
 
   @ApiProperty({ enum: UserRole })
   @IsEnum(UserRole)
-  role: UserRole;
+  role!: UserRole;
 }
 
 export class RequestPasswordResetBody {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  identifier: string;
+  identifier!: string;
 
   @ApiProperty({ enum: UserRole })
   @IsEnum(UserRole)
-  role: UserRole;
+  role!: UserRole;
 }
 
 export class ChangePasswordBody {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  currentPassword: string;
+  currentPassword!: string;
 
   @ApiProperty()
   @IsStrongPassword()
-  newPassword: string;
+  newPassword!: string;
 }

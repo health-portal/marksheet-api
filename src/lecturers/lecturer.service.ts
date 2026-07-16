@@ -45,38 +45,6 @@ export class LecturerService {
     }
   }
 
-  // async listCourseSessions(
-  //   lecturerId: string,
-  // ): Promise<LecturerCourseSessionRes[]> {
-  //   const courseSessions = await this.prisma.courseSession.findMany({
-  //     where: { lecturers: { some: { id: lecturerId } } },
-  //     select: {
-  //       id: true,
-  //       course: { select: { code: true } },
-  //       gradingSystem: { select: { id: true, name: true } },
-  //       session: { select: { academicYear: true } },
-  //       deptsAndLevels: {
-  //         select: { level: true, department: { select: { name: true } } },
-  //       },
-  //       _count: { select: { enrollments: true, lecturers: true } },
-  //     },
-  //   });
-
-  //   return courseSessions.map((courseSession) => ({
-  //     id: courseSession.id,
-  //     courseCode: courseSession.course.code,
-  //     gradingSystem: courseSession.gradingSystem.name,
-  //     session: courseSession.session.academicYear,
-  //     deptsAndLevels: courseSession.deptsAndLevels.map((deptAndLevel) => ({
-  //       level: deptAndLevel.level,
-  //       department: deptAndLevel.department.name,
-  //     })),
-  //     enrollmentCount: courseSession._count.enrollments,
-  //     lecturerCount: courseSession._count.lecturers,
-  //   }));
-  // }
-
-
 async getLecturerCourseSessions(lecturerId: string) {
   const courseSessions = await this.prisma.courseSession.findMany({
     where: {
@@ -185,7 +153,7 @@ async getLecturerCourseSessions(lecturerId: string) {
     lecturerId: string,
     courseSesnDeptLevelId: string,
     file: Express.Multer.File,
-    // resultType: ResultType,
+    resultType: ResultType,
   ) {
     // await this.validateCourseLecturerAccess(lecturerId, userId, true);
     const deptLevel = await this.prisma.courseSesnDeptAndLevel.findUnique({
@@ -215,8 +183,6 @@ async getLecturerCourseSessions(lecturerId: string) {
     },
   });
 
-
-  // Upload new file to Cloudinary before the transaction
   const { url, publicId } = await this.cloudinary.uploadFile(
     file.buffer,
     file.originalname,
@@ -245,7 +211,7 @@ async getLecturerCourseSessions(lecturerId: string) {
             url,
             publicId,
             mimetype:  file.mimetype,
-            // resultType,
+            resultType,
             category:  FileCategory.RESULTS,
           },
         });
@@ -263,7 +229,6 @@ async getLecturerCourseSessions(lecturerId: string) {
     throw error;
   }
 
-  // Trigger approval pipeline
   const pipeline = await this.approvalManager.buildApprovalPipeline(courseSesnDeptLevelId, lecturerId);
   
     return {
