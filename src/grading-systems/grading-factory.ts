@@ -13,7 +13,7 @@ export class GradingFactory {
   getStrategy(facultyName: string): IGradingStrategy {
     const normalizedName = facultyName.toLowerCase().trim();
 
-    if (normalizedName.includes('nursing') || normalizedName.includes('clinical sciences')) {
+    if (normalizedName.includes('nursing science') || normalizedName.includes('clinical sciences')) {
       return this.moduleRef.get(NursingGradingStrategy, { strict: false });
     }
 
