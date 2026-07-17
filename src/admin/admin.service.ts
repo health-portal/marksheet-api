@@ -82,61 +82,85 @@ export class AdminService {
       where: { id: adminId },
     });
   }
+  async updateLecturerDesignation(
+    lecturerId: string,
+    body: UpdateLecturerDesignationDto,
+  ): Promise<LecturerDesignation> {
+    if (body.role === LecturerRole.PART_ADVISER && !body.part) {
+      throw new BadRequestException(
+        'A specific Level (part) is required when assigning the PART_ADVISER role',
+      );
+    }
 
-async updateLecturerDesignation(
-  lecturerId: string,
-  body: UpdateLecturerDesignationDto,
-): Promise<LecturerDesignation> {
-  // 1. Logic Validation: Part Advisers MUST have a Level assigned
-  if (body.role === LecturerRole.PART_ADVISER && !body.part) {
-    throw new BadRequestException(
-      'A specific Level (part) is required when assigning the PART_ADVISER role',
-    );
-  }
+    const lecturer = await this.prisma.lecturer.findUnique({
+      where: { id: lecturerId },
+      select: { 
+        id: true, 
+        departmentId: true,
+        designations: { // Matches schema field name
+          select: { role: true, part: true },
+        },
+      },
+    });
 
-  const lecturer = await this.prisma.lecturer.findUnique({
-    where: { id: lecturerId },
-    select: { id: true, departmentId: true },
-  });
+    if (!lecturer) {
+      throw new NotFoundException(`Lecturer with ID ${lecturerId} not found`);
+    }
 
-  if (!lecturer) {
-    throw new NotFoundException(`Lecturer with ID ${lecturerId} not found`);
-  }
+    if (body.role !== LecturerRole.COURSE_LECTURER) {
+      const existingAdminRole = lecturer.designations.find(
+        (d) => d.role !== LecturerRole.COURSE_LECTURER && d.role !== body.role
+      );
 
-  
-  const assignedDept = await this.prisma.lecturerDesignation.findFirst({
-    where: {
-      entity: lecturer.departmentId,
-      role: body.role,
-      part: body.part ?? null,
-    },
-  });
-  if (assignedDept) {
-    throw new BadRequestException(
-      `The role ${body.role} is already assigned to another lecturer in this department for the specified part.`,
-    );
-  }
-  const updatedLecturer = await this.prisma.lecturerDesignation.upsert({
-    where: {
-      designation: {
+      if (existingAdminRole) {
+        throw new BadRequestException(
+          `This lecturer already holds the administrative role of '${existingAdminRole.role}'. ` +
+          `They cannot be assigned the role of '${body.role}'. A lecturer can only hold 'COURSE_LECTURER' and at most one other administrative role.`,
+        );
+      }
+    }
+
+    const assignedDept = await this.prisma.lecturerDesignation.findFirst({
+      where: {
+        entity: lecturer.departmentId,
+        role: body.role,
+        part: body.part ?? null,
+        // Exclude current lecturer so they can update their own designation details safely
+        NOT: {
+          lecturerId: lecturer.id,
+        },
+      },
+    });
+
+    if (assignedDept) {
+      throw new BadRequestException(
+        `The role ${body.role} is already assigned to another lecturer in this department for the specified part.`,
+      );
+    }
+
+    // Upsert the designation safely
+    const updatedLecturer = await this.prisma.lecturerDesignation.upsert({
+      where: {
+        designation: {
+          entity: lecturer.departmentId,
+          role: body.role,
+          lecturerId: lecturer.id,
+        },
+      },
+      update: {
+        part: body.part ?? null, 
+      },
+      create: {
         entity: lecturer.departmentId,
         role: body.role,
         lecturerId: lecturer.id,
+        part: body.part ?? null,
       },
-    },
-    update: {
-      part: body.part ?? null, 
-    },
-    create: {
-      entity: lecturer.departmentId,
-      role: body.role,
-      lecturerId: lecturer.id,
-      part: body.part ?? null,
-    },
-  });
-  return updatedLecturer
+    });
 
-}
+    return updatedLecturer;
+  }
+
   async activateFixtureLecturers({ emails, password }: ActivateFixtureLecturersBody) {
     const uniqueEmails = [...new Set(emails.map((email) => email.trim().toLowerCase()))];
 

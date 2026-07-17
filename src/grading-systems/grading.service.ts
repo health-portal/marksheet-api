@@ -22,9 +22,10 @@ export class GradingService {
     });
 
     if (!student) throw new Error('Student profile not found');
+    const facultyName = student.department.faculty.name; // e.g., "Faculty of Nursing Sciences"
 
-    const strategyType = student.department.faculty.strategy;
-    const strategy = this.factory.getStrategy(strategyType);
+    // 3. Resolve the correct runtime strategy matching the faculty name
+    const strategy = this.factory.getStrategy(facultyName);
 
     // 2. Fetch all registered course sessions and scores for this student in the session
     const enrollments = await this.prisma.enrollment.findMany({

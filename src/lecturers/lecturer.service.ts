@@ -57,6 +57,9 @@ async getLecturerCourseSessions(lecturerId: string) {
       session: {
         select: { id: true, academicYear:true },  // whatever your Session model exposes
       },
+      gradingSystem: {
+        select: { id: true, name: true,  },
+      },
       deptsAndLevels: {
         include: {
           department: { select: { id: true, name: true } },

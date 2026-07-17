@@ -16,7 +16,7 @@ import {
 import { LecturerService } from './lecturer.service';
 import { User } from 'src/auth/user.decorator';
 import { AuthRoles, UserRoleGuard } from 'src/auth/role.guard';
-import { UserRole } from '@prisma/client';
+import { ResultType, UserRole } from '@prisma/client';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { LecturerData, type UserPayload } from 'src/auth/auth.dto';
 import { EditResultBody, RegisterStudentBody, UploadResultDto } from './lecturers.dto';
@@ -195,7 +195,14 @@ export class LecturerController {
       type: 'object',
       properties: {
         file: { type: 'string', format: 'binary' },
+        resultType: { 
+          type: 'string', 
+          enum: Object.values(ResultType), 
+          example: ResultType.INITIAL,
+          description: 'Whether this is an initial result or a resit'
+        },
       },
+      required: ['file', 'resultType'],
     },
   })
   @UseInterceptors(FileInterceptor('file'))
@@ -230,31 +237,6 @@ export class LecturerController {
     const lecturerId = this.getLecturerId(user);
     return await this.lecturerService.getPendingApprovals(lecturerId);
   }
-
-  @Patch('dept-level/:courseSesnDeptLevelId/publish')
-  @ApiOperation({
-    summary: 'Publish results for a department/level',
-    description:
-      'Lecturer publishes results for a specific dept+level combination. ' +
-      'The approval flow must be fully approved and results must be processed ' +
-      'before publishing. Students can only see results after this is called.',
-  })
-  @ApiParam({ name: 'courseSesnDeptLevelId', description: 'CourseSesnDeptAndLevel ID' })
-  @ApiResponse({ status: 200, description: 'Results published successfully' })
-  @ApiResponse({ status: 400, description: 'Approval not complete or results not processed' })
-  @ApiResponse({ status: 403, description: 'Lecturer not assigned to this course session' })
-  async publishResults(
-    @User() user: UserPayload,
-    @Param('courseSesnDeptLevelId') courseSesnDeptLevelId: string,
-  ) {
-    const { lecturerId } = user.userData as LecturerData;
-    
-    // const lecturerId = "a49a1cee-6042-4c2d-b048-0520133292c3";
-    return this.lecturerService.publishResults(
-      courseSesnDeptLevelId,
-      lecturerId,
-    );
-}
 
   @Patch('request/:requestId/respond')
   @ApiOperation({

@@ -10,16 +10,20 @@ import { NursingGradingStrategy } from './strategies/nursing-grading.strategy';
 export class GradingFactory {
   constructor(private moduleRef: ModuleRef) {}
 
-  getStrategy(strategyType: GradingStrategy): IGradingStrategy {
-    switch (strategyType) {
-      case GradingStrategy.NURSING:
-        return this.moduleRef.get(NursingGradingStrategy, { strict: false });
-      case GradingStrategy.MEDICINE: 
-        return this.moduleRef.get(BmsDentistryStrategy, { strict: false });
-      case GradingStrategy.DENTISTRY: 
-        return this.moduleRef.get(BmsDentistryStrategy, { strict: false });
-      default:
-        throw new BadRequestException(`Grading strategy ${strategyType} is not supported.`);
+  getStrategy(facultyName: string): IGradingStrategy {
+    const normalizedName = facultyName.toLowerCase().trim();
+
+    if (normalizedName.includes('nursing') || normalizedName.includes('clinical sciences')) {
+      return this.moduleRef.get(NursingGradingStrategy, { strict: false });
     }
+
+    if (normalizedName.includes('basic medical sciences') || normalizedName.includes('dentistry')) {
+      return this.moduleRef.get(BmsDentistryStrategy, { strict: false });
+    }
+
+    // Default fallback engine if no custom match is found
+    throw new BadRequestException(
+      `No specific academic Grading strategy configured for the "${facultyName}".`
+    );
   }
 }

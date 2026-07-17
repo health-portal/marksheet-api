@@ -132,23 +132,28 @@ export class ApprovalManager {
       timeout: 30000, // 30 seconds
   });
   }
-  async respondToApprovalRequest(
+async respondToApprovalRequest(
     lecturerId: string,
     approvalRequestId: string,
     response: RespondToApprovalRequestDto,
   ) {
-    // 1. Fetch Request with all necessary Email & Metadata paths
+    // 1. Fetch Request with all necessary Email & Metadata paths (including resultUploads)
     const request = await this.prisma.approvalRequest.findUnique({
       where: { id: approvalRequestId },
       include: {
         lecturerDesignation: true,
         approvalFlow: {
           include: {
-            lecturer: { include: { user: { select: { email: true,} } } },
+            lecturer: { include: { user: { select: { email: true } } } },
             courseSesnDeptLevel: { 
               include: { 
                 department: { select: { name: true } },
-                courseSession: { include: { course: { select: { code: true } } } } 
+                courseSession: { include: { course: { select: { code: true } } } },
+                resultUploads: { // <--- Added here to easily locate the uploaded file id
+                  take: 1,
+                  orderBy: { createdAt: 'desc' },
+                  select: { id: true }
+                }
               } 
             },
             approvalRequests: {
@@ -179,11 +184,17 @@ export class ApprovalManager {
       (req) => req.priority > request.priority && req.status === ApprovalStatus.REQUESTED,
     );
     const isRejection = response.approvalStatus === ApprovalStatus.REJECTED;
-    const junctionId = request.approvalFlow.courseSesnDeptLevelId;
+    
+    const courseSesnDeptLevelId = request.approvalFlow.courseSesnDeptLevelId;
+    const activeUpload = request.approvalFlow.courseSesnDeptLevel.resultUploads[0]; 
+    
+    if (isLastStep && !isRejection && !activeUpload) {
+      throw new NotFoundException('No uploaded result file found associated with this department level approval flow.');
+    }
+
     const courseCode = request.approvalFlow.courseSesnDeptLevel.courseSession.course.code;
     const deptName = request.approvalFlow.courseSesnDeptLevel.department.name;
 
-    // 4. Database Transaction
     await this.prisma.$transaction(async (tx) => {
       // A. Update the specific Request
       await tx.approvalRequest.update({
@@ -203,14 +214,14 @@ export class ApprovalManager {
         });
 
         await tx.courseSesnDeptAndLevel.update({
-          where: { id: junctionId },
+          where: { id: courseSesnDeptLevelId },
           data: { resultStatus: DeptResultStatus.REJECTED },
         });
 
         await this.resetApprovalFlow(request.approvalFlowId);
       } 
       
-      // C. Handle Final Approval logic
+      // C. Handle Final Approval logic (Publish & Process)
       else if (isLastStep) {
         await tx.approvalFlow.update({
           where: { id: request.approvalFlowId },
@@ -218,8 +229,14 @@ export class ApprovalManager {
         });
 
         await tx.courseSesnDeptAndLevel.update({
-          where: { id: junctionId },
+          where: { id: courseSesnDeptLevelId },
           data: { resultStatus: DeptResultStatus.APPROVED },
+        });
+        
+        // Trigger Result Processing safely using the resolved database keys        
+        await this.messageQueueService.enqueueProcessResults({
+          resultUploadId: activeUpload.id, // Resolved dynamically
+          courseSesnDeptLevelId: courseSesnDeptLevelId // Resolved dynamically
         });
       }
     });
@@ -268,7 +285,6 @@ export class ApprovalManager {
       message: isRejection ? 'Result rejected' : isLastStep ? 'Final approval complete' : 'Step approved' 
     };
   }
-
   
   async checkApprovalPipelineStatus(
     approvalFlowId: string,
